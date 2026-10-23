@@ -1,0 +1,35 @@
+# =============================================================
+# docker-compose.yml — runs the app AND MongoDB together
+#   Start:  docker compose up --build
+#   Stop:   docker compose down
+# =============================================================
+services:
+  mongo:
+    image: mongo:7
+    container_name: todo-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"          # optional: lets MongoDB Compass connect from your PC
+    volumes:
+      - mongo-data:/data/db    # keeps tasks after the container stops
+
+  app:
+    build: .
+    container_name: todo-app
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "5000:5000"            # open http://localhost:5000
+    environment:
+      PORT: 5000
+      # "mongo" is the service name above — Docker's network resolves it
+      MONGODB_URI: mongodb://mongo:27017/todo_db
+      MAX_FILE_SIZE_MB: 5
+      CLIENT_ORIGIN: "*"
+    volumes:
+      - uploads-data:/app/server/uploads   # keeps uploaded files
+
+volumes:
+  mongo-data:
+  uploads-data:
